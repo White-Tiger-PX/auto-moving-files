@@ -19,11 +19,11 @@
             "directory_name_exceptions": [
 
             ],
-            "sorting_with_date": {
-                "in_the_root_folder": false,
-                "sort_by_days": false,
-                "sort_by_month": false,
-                "sort_by_year": false
+            "date_grouping_options": {
+                "create_date_folders_in_root": false,
+                "group_by_days": false,
+                "group_by_months": false,
+                "group_by_years": false
             }
         }
     ]

@@ -68,23 +68,23 @@ def append_time_str(string_datetime, destination_directory_path, period):
 def sorting_with_date(program_start_time, setup, destination_directory_path):
     string_datetime = datetime.fromtimestamp(program_start_time)
 
-    if setup['sort_by_year']:
+    if setup['group_by_years']:
         destination_directory_path = append_time_str(string_datetime, destination_directory_path, 'Y')
 
-        if setup['sort_by_month']:
+        if setup['group_by_months']:
             destination_directory_path = append_time_str(string_datetime, destination_directory_path, 'm')
 
-            if setup['sort_by_days']:
+            if setup['group_by_days']:
                 destination_directory_path = append_time_str(string_datetime, destination_directory_path, 'd')
-        elif setup['sort_by_days']:
+        elif setup['group_by_days']:
             destination_directory_path = append_time_str(string_datetime, destination_directory_path, 'md')
     else:
-        if setup['sort_by_month']:
+        if setup['group_by_months']:
             destination_directory_path = append_time_str(string_datetime, destination_directory_path, 'Ym')
 
-            if setup['sort_by_days']:
+            if setup['group_by_days']:
                 destination_directory_path = append_time_str(string_datetime, destination_directory_path, 'd')
-        elif setup['sort_by_days']:
+        elif setup['group_by_days']:
             destination_directory_path = append_time_str(string_datetime, destination_directory_path, 'Ymd')
 
     return destination_directory_path
@@ -92,9 +92,8 @@ def sorting_with_date(program_start_time, setup, destination_directory_path):
 
 def copy_files(program_start_time, path_settings, directories_data):
     save_folders = path_settings['save_folders']
-    sorting_with_date_options = path_settings['sorting_with_date']
-    sort_by_date = any(sorting_with_date_options[key] for key in ['sort_by_days', 'sort_by_month', 'sort_by_year'])
-
+    sorting_with_date_options = path_settings['date_grouping_options']
+    sort_by_date = any(sorting_with_date_options[key] for key in ['group_by_days', 'group_by_months', 'group_by_years'])
 
     for directory_path, directory_info in directories_data.items():
         relative_path = os.path.relpath(directory_path, path_settings['input'])
@@ -105,7 +104,7 @@ def copy_files(program_start_time, path_settings, directories_data):
 
             if save_folders:
                 if sort_by_date:
-                    if sorting_with_date_options['in_the_root_folder']:
+                    if sorting_with_date_options['create_date_folders_in_root']:
                         destination_directory_path = sorting_with_date(program_start_time, sorting_with_date_options, path_settings['output'])
                         destination_directory_path = os.path.join(destination_directory_path, relative_path)
                     else:
@@ -144,14 +143,14 @@ def copy_files(program_start_time, path_settings, directories_data):
 
                 copy2(file_path, destination_path)
                 logger.info("Скопирован файл %s", destination_path)
-            except Exception as error:
-                logger.error("Ошибка при копировании файла %s в %s: %s", file_path, destination_directory_path, error)
+            except Exception as err:
+                logger.error("Ошибка при копировании файла %s в %s: %s", file_path, destination_directory_path, err)
 
 
 def moving_files(program_start_time, path_settings, directories_data):
     save_folders = path_settings['save_folders']
-    sorting_with_date_options = path_settings['sorting_with_date']
-    sort_by_date = any(sorting_with_date_options[key] for key in ['sort_by_days', 'sort_by_month', 'sort_by_year'])
+    sorting_with_date_options = path_settings['date_grouping_options']
+    sort_by_date = any(sorting_with_date_options[key] for key in ['group_by_days', 'group_by_months', 'group_by_years'])
 
     for directory_path, directory_info in directories_data.items():
         relative_path = os.path.relpath(directory_path, path_settings['input'])
@@ -162,7 +161,7 @@ def moving_files(program_start_time, path_settings, directories_data):
 
             if save_folders:
                 if sort_by_date:
-                    if sorting_with_date_options['in_the_root_folder']:
+                    if sorting_with_date_options['create_date_folders_in_root']:
                         destination_directory_path = sorting_with_date(program_start_time, sorting_with_date_options, path_settings['output'])
                         destination_directory_path = os.path.join(destination_directory_path, relative_path)
                     else:
@@ -178,7 +177,7 @@ def moving_files(program_start_time, path_settings, directories_data):
 
             destination_path = os.path.join(destination_directory_path, os.path.basename(file_path))
 
-            if file_path == destination_path:  # Изначальная и конечный путь к файлы идентичны
+            if file_path == destination_path: # Изначальная и конечный путь к файлы идентичны
                 continue
 
             # Проверяем, что не существует файла без расширения с названием совпадающим с конечной папкой
@@ -228,15 +227,15 @@ def update_files_info(program_start_time, directory_path, file_names, archive_di
                 file_first_seen_time = archive_file_data['file_first_seen_time']
             else:
                 file_first_seen_time = program_start_time
-        except Exception:
+        except Exception as err:
             file_first_seen_time = program_start_time
-            logger.error("Ошибка получения архивных данных первого обнаружения файла: %s", file_path)
+            logger.error("Ошибка получения архивных данных первого обнаружения файла %s: %s", file_path, err)
 
         try:
             file_modified_time = os.path.getmtime(file_path)
-        except Exception:
+        except Exception as err:
             file_modified_time = program_start_time
-            logger.error("Ошибка получения времени последнего изменения файла: %s", file_path)
+            logger.error("Ошибка получения времени последнего изменения файла %s: %s", file_path, err)
 
         files_data[file_path] = {
             "name": file_name,
