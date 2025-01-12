@@ -29,20 +29,22 @@ def checking_the_condition_for_action(program_start_time, path_settings, file_na
             new_files_info = {}
 
             for file_path, file_info in directory_info['files'].items():
-                new_files_info[file_path] = False
+                new_files_info[file_path] = True # move_restricted по умолчанию
 
                 is_file_exception = any(file_name_exception in file_info['name'] for file_name_exception in file_name_exceptions)
                 is_modified_time_condition = file_info['file_modified_time'] < time_limit_for_modified_time
                 is_first_seen_condition = file_info['file_first_seen_time'] < time_limit_for_first_seen
 
-                if not is_file_exception:
-                    if action_by_last_modified and action_by_first_seen:
-                        if is_modified_time_condition and is_first_seen_condition:
-                            new_files_info[file_path] = True
-                    elif action_by_last_modified and is_modified_time_condition:
-                        new_files_info[file_path] = True
-                    elif action_by_first_seen and is_first_seen_condition:
-                        new_files_info[file_path] = True
+                if is_file_exception:
+                    continue
+
+                if action_by_last_modified and action_by_first_seen:
+                    if is_modified_time_condition and is_first_seen_condition:
+                        new_files_info[file_path] = False
+                elif action_by_last_modified and is_modified_time_condition:
+                    new_files_info[file_path] = False
+                elif action_by_first_seen and is_first_seen_condition:
+                    new_files_info[file_path] = False
 
             directories_data[directory_path]['files'] = new_files_info
 
@@ -90,100 +92,117 @@ def sorting_with_date(program_start_time, setup, destination_directory_path):
 
 def copy_files(program_start_time, path_settings, directories_data):
     save_folders = path_settings['save_folders']
-    params = path_settings['sorting_with_date']
-    sort_by_date = params['sort_by_days'] or params['sort_by_month'] or params['sort_by_year']
-    len_input_path = len(path_settings['input']) + 1
-
-    for directory_path, directory_info in directories_data.items():
-        for file_path, move_file in directory_info['files'].items():
-            if move_file:
-                if save_folders:
-                    if sort_by_date:
-                        if params['in_the_root_folder']:
-                            destination_directory_path = sorting_with_date(program_start_time, params, path_settings['output'])
-                            destination_directory_path = os.path.join(destination_directory_path, directory_path[len_input_path:])
-                        else:
-                            destination_directory_path = os.path.join(path_settings['output'], directory_path[len_input_path:])
-                            destination_directory_path = sorting_with_date(program_start_time, params, destination_directory_path)
-                    else:
-                        destination_directory_path = os.path.join(path_settings['output'], directory_path[len_input_path:])
-                else:
-                    destination_directory_path = path_settings['output']
-
-                    if sort_by_date:
-                        destination_directory_path = sorting_with_date(program_start_time, params, destination_directory_path)
-
-                destination_directory_path = os.path.join(destination_directory_path, os.path.basename(file_path))
-
-                par1 = file_path != destination_directory_path
-                par2 = not os.path.exists(destination_directory_path)
-
-                if not(par2):
-                    file1_stat = os.stat(file_path)
-                    file2_stat = os.stat(destination_directory_path)
-                    par2 = file1_stat.st_size != file2_stat.st_size
-
-                if par1 and par2:
-                    try:
-                        if not os.path.isfile(os.path.dirname(destination_directory_path)):
-                            os.makedirs(os.path.dirname(destination_directory_path), exist_ok=True)
-                        else:
-                            logger.error("Невозможно создать директорию %s, так как файл с таким же именем уже существует.", os.path.dirname(destination_directory_path))
-                            continue
-
-                        rel_dir_path = os.path.relpath(directory_path, path_settings['input'])
-                        file_path_with_last_folder = os.path.join(rel_dir_path, os.path.basename(file_path))
-
-                        copy2(file_path, destination_directory_path)
-                        logger.info("Скопирован файл %s", file_path_with_last_folder)
-                    except Exception as error:
-                        logger.error("Ошибка при копировании файла %s в %s: %s", file_path_with_last_folder, os.path.dirname(destination_directory_path), error)
-
-
-def moving_files(program_start_time, path_settings, directories_data):
-    save_folders = path_settings['save_folders']
     sorting_with_date_options = path_settings['sorting_with_date']
     sort_by_date = any(sorting_with_date_options[key] for key in ['sort_by_days', 'sort_by_month', 'sort_by_year'])
-    len_input_path = len(path_settings['input']) + 1
+
 
     for directory_path, directory_info in directories_data.items():
-        for file_path, move_file in directory_info['files'].items():
-            if not move_file:
+        relative_path = os.path.relpath(directory_path, path_settings['input'])
+
+        for file_path, move_restricted in directory_info['files'].items():
+            if move_restricted:
                 continue
 
             if save_folders:
                 if sort_by_date:
                     if sorting_with_date_options['in_the_root_folder']:
                         destination_directory_path = sorting_with_date(program_start_time, sorting_with_date_options, path_settings['output'])
-                        destination_directory_path = os.path.join(destination_directory_path, directory_path[len_input_path:])
+                        destination_directory_path = os.path.join(destination_directory_path, relative_path)
                     else:
-                        destination_directory_path = os.path.join(path_settings['output'], directory_path[len_input_path:])
+                        destination_directory_path = os.path.join(path_settings['output'], relative_path)
                         destination_directory_path = sorting_with_date(program_start_time, sorting_with_date_options, destination_directory_path)
                 else:
-                    destination_directory_path = os.path.join(path_settings['output'], directory_path[len_input_path:])
+                    destination_directory_path = os.path.join(path_settings['output'], relative_path)
             else:
                 destination_directory_path = path_settings['output']
 
                 if sort_by_date:
                     destination_directory_path = sorting_with_date(program_start_time, sorting_with_date_options, destination_directory_path)
 
-            destination_directory_path = os.path.join(destination_directory_path, os.path.basename(file_path))
+            destination_path = os.path.join(destination_directory_path, os.path.basename(file_path))
 
-            par1 = file_path != destination_directory_path
-            par2 = not os.path.exists(destination_directory_path) or path_settings['overwrite_files']
+            if file_path == destination_path: # Изначальная и конечный путь к файлы идентичны
+                continue
 
-            if par1 and par2:
-                try:
-                    if not os.path.isfile(os.path.dirname(destination_directory_path)):
-                        os.makedirs(os.path.dirname(destination_directory_path), exist_ok=True)
+            # Проверяем, что не существует файла без расширения с названием совпадающим с конечной папкой
+            if os.path.isfile(destination_directory_path):
+                logger.error("Невозможно создать директорию %s, так как файл с таким же именем уже существует.", destination_directory_path)
+                continue
+
+            if os.path.exists(destination_path): # Файл уже существует в папке output
+                if not path_settings['overwrite_files']: # Настройки не позволяют перезаписывать существующий файл
+                    continue
+
+                file1_stat = os.stat(file_path)
+                file2_stat = os.stat(destination_path)
+
+                if file1_stat.st_size == file2_stat.st_size: # Файлы идентичны
+                    continue
+
+            try:
+                os.makedirs(destination_directory_path, exist_ok=True)
+
+                copy2(file_path, destination_path)
+                logger.info("Скопирован файл %s", destination_path)
+            except Exception as error:
+                logger.error("Ошибка при копировании файла %s в %s: %s", file_path, destination_directory_path, error)
+
+
+def moving_files(program_start_time, path_settings, directories_data):
+    save_folders = path_settings['save_folders']
+    sorting_with_date_options = path_settings['sorting_with_date']
+    sort_by_date = any(sorting_with_date_options[key] for key in ['sort_by_days', 'sort_by_month', 'sort_by_year'])
+
+    for directory_path, directory_info in directories_data.items():
+        relative_path = os.path.relpath(directory_path, path_settings['input'])
+
+        for file_path, move_restricted in directory_info['files'].items():
+            if move_restricted:
+                continue
+
+            if save_folders:
+                if sort_by_date:
+                    if sorting_with_date_options['in_the_root_folder']:
+                        destination_directory_path = sorting_with_date(program_start_time, sorting_with_date_options, path_settings['output'])
+                        destination_directory_path = os.path.join(destination_directory_path, relative_path)
                     else:
-                        logger.error("Невозможно создать директорию %s, так как файл с таким же именем уже существует.", os.path.dirname(destination_directory_path))
-                        continue
+                        destination_directory_path = os.path.join(path_settings['output'], relative_path)
+                        destination_directory_path = sorting_with_date(program_start_time, sorting_with_date_options, destination_directory_path)
+                else:
+                    destination_directory_path = os.path.join(path_settings['output'], relative_path)
+            else:
+                destination_directory_path = path_settings['output']
 
-                    move(file_path, destination_directory_path)
-                    logger.info("Перемещен файл %s", file_path)
-                except Exception as error:
-                    logger.error("Ошибка при перемещении файла %s в %s: %s", file_path, os.path.dirname(destination_directory_path), error)
+                if sort_by_date:
+                    destination_directory_path = sorting_with_date(program_start_time, sorting_with_date_options, destination_directory_path)
+
+            destination_path = os.path.join(destination_directory_path, os.path.basename(file_path))
+
+            if file_path == destination_path:  # Изначальная и конечный путь к файлы идентичны
+                continue
+
+            # Проверяем, что не существует файла без расширения с названием совпадающим с конечной папкой
+            if os.path.isfile(destination_directory_path):
+                logger.error("Невозможно создать директорию %s, так как файл с таким же именем уже существует.", destination_directory_path)
+                continue
+
+            if os.path.exists(destination_path): # Файл уже существует в папке output
+                if not path_settings['overwrite_files']: # Настройки не позволяют перезаписывать существующий файл
+                    continue
+
+                file1_stat = os.stat(file_path)
+                file2_stat = os.stat(destination_path)
+
+                if file1_stat.st_size == file2_stat.st_size: # Файлы идентичны
+                    continue
+
+            try:
+                os.makedirs(destination_directory_path, exist_ok=True)
+
+                move(file_path, destination_path)
+                logger.info("Перемещен файл %s", file_path)
+            except Exception as error:
+                logger.error("Ошибка при перемещении файла %s в %s: %s", file_path, destination_directory_path, error)
 
 
 def save_json(file_path, data):
