@@ -1,10 +1,10 @@
 import os
 import time
 import json
+import shutil
 import logging
 
 from datetime import datetime
-from shutil import copy2, move
 
 
 def save_directory(directories_data, directory_path):
@@ -126,6 +126,7 @@ def copy_files(program_start_time, path_settings, directories_data):
             # Проверяем, что не существует файла без расширения с названием совпадающим с конечной папкой
             if os.path.isfile(destination_directory_path):
                 logger.error("Невозможно создать директорию %s, так как файл с таким же именем уже существует.", destination_directory_path)
+
                 continue
 
             if os.path.exists(destination_path): # Файл уже существует в папке output
@@ -141,7 +142,7 @@ def copy_files(program_start_time, path_settings, directories_data):
             try:
                 os.makedirs(destination_directory_path, exist_ok=True)
 
-                copy2(file_path, destination_path)
+                shutil.copy2(file_path, destination_path)
                 logger.info("Скопирован файл %s", destination_path)
             except Exception as err:
                 logger.error("Ошибка при копировании файла %s в %s: %s", file_path, destination_directory_path, err)
@@ -198,7 +199,7 @@ def moving_files(program_start_time, path_settings, directories_data):
             try:
                 os.makedirs(destination_directory_path, exist_ok=True)
 
-                move(file_path, destination_path)
+                shutil.move(file_path, destination_path)
                 logger.info("Перемещен файл %s", file_path)
             except Exception as error:
                 logger.error("Ошибка при перемещении файла %s в %s: %s", file_path, destination_directory_path, error)
@@ -275,7 +276,7 @@ def update_dir_info(program_start_time, directory_with_scanned_directories, dire
     if not os.path.exists(directory_path):
         return archive_data
 
-    archive_file_name = directory_path.replace('/', '_').replace(':', '')
+    archive_file_name = directory_path.replace('\\', '_').replace('/', '_').replace(':', '')
     path = f"{directory_with_scanned_directories}/{archive_file_name}.json"
 
     archive_data = load_json(path, default_type={})
@@ -290,6 +291,9 @@ def main(settings):
     directory_with_scanned_directories = settings['directory_with_scanned_directories']
 
     for path_settings in settings['directories']:
+        path_settings['input'] = os.path.normpath(path_settings['input'])
+        path_settings['output'] = os.path.normpath(path_settings['output'])
+
         if not os.path.exists(path_settings['input']):
             continue
 
@@ -352,13 +356,14 @@ def load_json(file_path, default_type):
     return default_type
 
 
-SETTING_PATH = 'settings.json'
+if __name__ == "__main__":
+    SETTING_PATH = 'settings.json'
 
-settings = load_json(SETTING_PATH, default_type={})
+    settings = load_json(SETTING_PATH, default_type={})
 
-if settings['save_logs']:
-    logger = set_logger(log_folder=settings['log_folder'])
-else:
-    logger = set_logger()
+    if settings['save_logs']:
+        logger = set_logger(log_folder=settings['log_folder'])
+    else:
+        logger = set_logger()
 
-main(settings)
+    main(settings)
