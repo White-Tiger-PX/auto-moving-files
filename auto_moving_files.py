@@ -2,9 +2,9 @@ import os
 import time
 import json
 import shutil
-import logging
 
 from datetime import datetime
+from set_logger import set_logger
 
 
 def save_directory(directories_data, directory_path):
@@ -319,28 +319,6 @@ def main(settings):
             moving_files(program_start_time, path_settings, directories_data)
 
 
-def set_logger(log_folder=None):
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-
-    if log_folder:  # Создание файла с логами только если указана папка
-        log_filename = datetime.now().strftime('%Y-%m-%d %H-%M-%S.log')
-        log_file_path = os.path.join(log_folder, log_filename)
-
-        os.makedirs(log_folder, exist_ok=True)
-
-        file_handler = logging.FileHandler(log_file_path, encoding='utf-8')
-        file_handler.setFormatter(formatter)
-        logger.addHandler(file_handler)
-
-    console_handler = logging.StreamHandler()
-    console_handler.setFormatter(formatter)
-    logger.addHandler(console_handler)
-
-    return logger
-
-
 def load_json(file_path, default_type):
     try:
         file_path = os.path.normpath(file_path)
@@ -361,9 +339,6 @@ if __name__ == "__main__":
 
     settings = load_json(SETTING_PATH, default_type={})
 
-    if settings['save_logs']:
-        logger = set_logger(log_folder=settings['log_folder'])
-    else:
-        logger = set_logger()
+    logger = set_logger(log_folder=settings['log_folder']) if settings['save_logs'] else set_logger()
 
     main(settings)
