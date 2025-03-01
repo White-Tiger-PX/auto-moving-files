@@ -49,43 +49,34 @@ def checking_the_condition_for_action(program_start_time, path_settings, file_na
             directories_data[directory_path]['files'] = new_files_info
 
 
-def append_time_str(string_datetime, destination_directory_path, period):
-    period_formats = {
-        'Y': '%Y',
-        'm': '%m',
-        'd': '%d',
-        'md': '%m-%d',
-        'Yd': '%Y-%d',
-        'Ym': '%Y-%m',
-        'Ymd': '%Y-%m-%d'
-    }
-
-    name = string_datetime.strftime(period_formats.get(period, ''))
-
-    return os.path.join(destination_directory_path, name)
-
-
 def sorting_with_date(program_start_time, setup, destination_directory_path):
     string_datetime = datetime.fromtimestamp(program_start_time)
 
     if setup['group_by_years']:
-        destination_directory_path = append_time_str(string_datetime, destination_directory_path, 'Y')
+        name = string_datetime.strftime('%Y')
+        destination_directory_path = os.path.join(destination_directory_path, name)
 
         if setup['group_by_months']:
-            destination_directory_path = append_time_str(string_datetime, destination_directory_path, 'm')
+            name = string_datetime.strftime('%m')
+            destination_directory_path = os.path.join(destination_directory_path, name)
 
             if setup['group_by_days']:
-                destination_directory_path = append_time_str(string_datetime, destination_directory_path, 'd')
+                name = string_datetime.strftime('%d')
+                destination_directory_path = os.path.join(destination_directory_path, name)
         elif setup['group_by_days']:
-            destination_directory_path = append_time_str(string_datetime, destination_directory_path, 'md')
+            name = string_datetime.strftime('%m-%d')
+            destination_directory_path = os.path.join(destination_directory_path, name)
     else:
         if setup['group_by_months']:
-            destination_directory_path = append_time_str(string_datetime, destination_directory_path, 'Ym')
+            name = string_datetime.strftime('%Y-%m')
+            destination_directory_path = os.path.join(destination_directory_path, name)
 
             if setup['group_by_days']:
-                destination_directory_path = append_time_str(string_datetime, destination_directory_path, 'd')
+                name = string_datetime.strftime('%d')
+                destination_directory_path = os.path.join(destination_directory_path, name)
         elif setup['group_by_days']:
-            destination_directory_path = append_time_str(string_datetime, destination_directory_path, 'Ymd')
+            name = string_datetime.strftime('%Y-%m-%d')
+            destination_directory_path = os.path.join(destination_directory_path, name)
 
     return destination_directory_path
 
