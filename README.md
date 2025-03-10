@@ -20,43 +20,43 @@ The script performs the following tasks:
 
 ## Configuration
 
-The script settings are located in the `settings.json` file. Example of the configuration file:
+The script settings are located in the `config.py` file. Example of the configuration file:
 
-```json
-{
-    "save_logs": true,
-    "log_folder": "logs",
-    "directory_with_scanned_directories": "scanned_directories",
-    "directories": [
-        {
-            "input": "C:/Users/user/Pictures",
-            "output": "D:/Backup/Pictures",
-            "time_limit_for_modified_time": 604800,
-            "time_limit_for_first_seen": 604800,
-            "action_by_last_modified": true,
-            "action_by_first_seen": true,
-            "save_folders": true,
-            "copy": true,
-            "overwrite_files": false,
-            "file_name_exceptions": [],
-            "directory_name_exceptions": [],
-            "date_grouping_options": {
-                "create_date_folders_in_root": false,
-                "group_by_days": false,
-                "group_by_months": false,
-                "group_by_years": false
-            }
+```python
+LOG_FOLDER                         = "logs"
+DIRECTORY_WITH_SCANNED_DIRECTORIES = "data/scanned_directories"
+DIRECTORIES_SETTINGS = [
+    {
+        "input":  "C:/Users/user/Pictures",
+        "output": "D:/Backup/Pictures",
+        "time_limit_for_modified_time": 604800,
+        "time_limit_for_first_seen":    604800,
+        "action_by_last_modified": True,
+        "action_by_first_seen":    True,
+        "save_folders":            True,
+        "copy":                    True,
+        "overwrite_files":         False,
+        "file_name_exceptions": [
+
+        ],
+        "directory_name_exceptions": [
+
+        ],
+        "date_grouping_options": {
+            "create_date_folders_in_root": False,
+            "group_by_days":   False,
+            "group_by_months": False,
+            "group_by_years":  False
         }
-    ]
-}
+    }
+]
 ```
 
 ### Description of Configuration Fields
 
-- **save_logs**: Indicates whether to save logs of script execution to a file.
-- **log_folder**: The folder for saving logs (used if `save_logs` is set to `true`).
-- **directory_with_scanned_directories**: The folder where data about scanned directories will be stored.
-- **directories**: A list of directories to process. Each directory includes the following parameters:
+- **LOG_FOLDER**: The folder for saving logs (used if `LOG_FOLDER` is not 'None').
+- **DIRECTORY_WITH_SCANNED_DIRECTORIES**: The folder where data about scanned directories will be stored.
+- **DIRECTORIES_SETTINGS**: A list of directories to process. Each directory includes the following parameters:
   - **input**: The path to the source folder to scan.
   - **output**: The path to the folder where files will be moved or copied.
   - **time_limit_for_modified_time**: The time (in seconds) since the last modification after which a file meets the action criteria.
@@ -64,8 +64,8 @@ The script settings are located in the `settings.json` file. Example of the conf
   - **action_by_last_modified**: A boolean value indicating whether the last modified time of the file should be considered.
   - **action_by_first_seen**: A boolean value indicating whether the first seen time of the file should be considered.
   - **save_folders**: A boolean value indicating whether the folder structure should be preserved when copying or moving files.
-  - **copy**: A boolean value indicating whether files should be copied (if `true`) or moved (if `false`).
-  - **overwrite_files**: A boolean value indicating whether to overwrite existing files in the `output` folder (if `true`).
+  - **copy**: A boolean value indicating whether files should be copied (if `True`) or moved (if `False`).
+  - **overwrite_files**: A boolean value indicating whether to overwrite existing files in the `output` folder (if `True`).
   - **file_name_exceptions**: A list of file name exceptions, indicating files that should not be moved or copied.
   - **directory_name_exceptions**: A list of directory name exceptions, indicating directories that should not be processed.
   - **date_grouping_options**: Options for grouping files by date. Possible parameters:
@@ -78,7 +78,7 @@ The script settings are located in the `settings.json` file. Example of the conf
 
 - The script uses Python's standard libraries, so no additional dependencies are required except for the standard library.
 - The script may take some time to run for large amounts of data.
-- Ensure that the paths in `settings.json` are correct for your operating system.
+- Ensure that the paths in `config.py` are correct for your operating system.
 
 ### Automatic Execution
 
@@ -92,7 +92,7 @@ On Windows (using Task Scheduler):
     - Check **Repeat task every** and set it to repeat every X minutes (e.g., every 10 minutes).
 5. Go to the **Actions** tab, click **New**, and choose **Start a Program**.
 6. Browse and select the Python executable (`python.exe`).
-7. In the **Add arguments** field, enter the path to your script (e.g., `C:\path\to\your\auto_delete_files.py`).
+7. In the **Add arguments** field, enter the path to your script (e.g., `C:\programs\auto_delete_files.py`).
 8. Click **OK** to save the task.
 
 <div style="justify-content: space-between; align-items: center;">

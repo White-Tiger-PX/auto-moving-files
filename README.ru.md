@@ -20,43 +20,43 @@
 
 ## Конфигурация
 
-Настройки скрипта находятся в файле `settings.json`. Пример файла конфигурации:
+Настройки скрипта находятся в файле `config.py`. Пример файла конфигурации:
 
-```json
-{
-    "save_logs": true,
-    "log_folder": "logs",
-    "directory_with_scanned_directories": "scanned_directories",
-    "directories": [
-        {
-            "input": "C:/Users/user/Pictures",
-            "output": "D:/Backup/Pictures",
-            "time_limit_for_modified_time": 604800,
-            "time_limit_for_first_seen": 604800,
-            "action_by_last_modified": true,
-            "action_by_first_seen": true,
-            "save_folders": true,
-            "copy": true,
-            "overwrite_files": false,
-            "file_name_exceptions": [],
-            "directory_name_exceptions": [],
-            "date_grouping_options": {
-                "create_date_folders_in_root": false,
-                "group_by_days": false,
-                "group_by_months": false,
-                "group_by_years": false
-            }
+```python
+LOG_FOLDER                         = "logs"
+DIRECTORY_WITH_SCANNED_DIRECTORIES = "data/scanned_directories"
+DIRECTORIES_SETTINGS = [
+    {
+        "input":  "C:/Users/user/Pictures",
+        "output": "D:/Backup/Pictures",
+        "time_limit_for_modified_time": 604800,
+        "time_limit_for_first_seen":    604800,
+        "action_by_last_modified": True,
+        "action_by_first_seen":    True,
+        "save_folders":            True,
+        "copy":                    True,
+        "overwrite_files":         False,
+        "file_name_exceptions": [
+
+        ],
+        "directory_name_exceptions": [
+
+        ],
+        "date_grouping_options": {
+            "create_date_folders_in_root": False,
+            "group_by_days":   False,
+            "group_by_months": False,
+            "group_by_years":  False
         }
-    ]
-}
+    }
+]
 ```
 
 ### Описание полей конфигурации
 
-- **save_logs**: Указывает, нужно ли сохранять логи выполнения скрипта в файл.
-- **log_folder**: Папка для сохранения логов (используется, если `save_logs` установлено в `true`).
-- **directory_with_scanned_directories**: Папка, в которой будут сохраняться данные о сканируемых директориях.
-- **directories**: Список директорий, которые нужно обрабатывать. Каждая директория включает в себя следующие параметры:
+- **LOG_FOLDER**: Папка для сохранения логов (используется, если `LOG_FOLDER` не `None`).
+- **DIRECTORY_WITH_SCANNED_DIRECTORIES**: Папка, в которой будут сохраняться данные о сканируемых директориях.
+- **DIRECTORIES_SETTINGS**: Список директорий, которые нужно обрабатывать. Каждая директория включает в себя следующие параметры:
   - **input**: Путь к исходной папке для сканирования.
   - **output**: Путь к папке, куда будут перемещаться или копироваться файлы.
   - **time_limit_for_modified_time**: Время (в секундах) с момента последнего изменения, после которого файл подходит под условия действия.
@@ -64,8 +64,8 @@
   - **action_by_last_modified**: Булевое значение, указывающее, следует ли учитывать время последнего изменения файла.
   - **action_by_first_seen**: Булевое значение, указывающее, следует ли учитывать время первого обнаружения файла.
   - **save_folders**: Булевое значение, указывающее, следует ли сохранять структуру папок при копировании или перемещении файлов.
-  - **copy**: Булевое значение, указывающее, следует ли копировать файлы (если `true`) или перемещать их (если `false`).
-  - **overwrite_files**: Булевое значение, указывающее, следует ли перезаписывать существующие файлы в папке `output` (если `true`).
+  - **copy**: Булевое значение, указывающее, следует ли копировать файлы (если `True`) или перемещать их (если `False`).
+  - **overwrite_files**: Булевое значение, указывающее, следует ли перезаписывать существующие файлы в папке `output` (если `True`).
   - **file_name_exceptions**: Список исключений по именам файлов, которые не будут перемещаться или копироваться.
   - **directory_name_exceptions**: Список исключений по именам директорий, которые не будут обрабатываться.
   - **date_grouping_options**: Опции группировки файлов по дате. Возможные параметры:
@@ -78,7 +78,7 @@
 
 - Скрипт использует стандартные библиотеки Python, так что не требуется дополнительных зависимостей, кроме стандартной библиотеки.
 - Для работы с большими объемами данных может потребоваться некоторое время на выполнение.
-- Убедитесь, что пути в `settings.json` указаны корректно для вашей операционной системы.
+- Убедитесь, что пути в `config.py` указаны корректно для вашей операционной системы.
 
 ### Автоматическое выполнение скрипта
 
@@ -94,7 +94,7 @@
 6. Выберите исполнимый файл Python. По умолчанию он находится по следующему пути:
    `C:\Users\ВАШЕ_ИМЯ_ПОЛЬЗОВАТЕЛЯ\AppData\Local\Programs\Python\ВАША_ВЕРСИЯ_python\python.exe`.
 7. В поле **Добавить аргументы** укажите полный путь к вашему скрипту. Например:
-   `(C:\путь\к\вашему\auto_moving_files.py)`
+   `(C:\programs\auto_moving_files.py)`
    *(Убедитесь, что путь заключён в кавычки, если он содержит пробелы.)*
 8. Нажмите **ОК**, чтобы сохранить задачу.
 
